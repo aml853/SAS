@@ -1,0 +1,18 @@
+*[1] PROC MEANS; 
+
+libname sasdata ‘/…/ANA610 Course Data/Lecture Week 1’ ; 
+
+%let anal_var = dep; /* very useful macro variable statement */
+ 
+proc means data=sasdata.annuity_master_new; var &anal_var; 
+	where chk_act_id notin(.); 
+run; 
+
+/* Or suppose you need to save the mean and std in a dataset */ 
+
+proc means data=sasdata.annuity_master_new noprint; var &anal_var; 
+	output out=tmp(drop = _freq_ _type_) mean=anal_var_mean 	std=anal_var_std; 
+	where chk_act_id notin(.); 
+run; 
+
+proc print data=tmp; run;
