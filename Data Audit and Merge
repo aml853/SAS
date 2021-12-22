@@ -1,0 +1,1322 @@
+/*Importing the SAS file*/
+libname sasdata '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+
+data fortune_acct; set sasdata.fortune_acct; run;
+
+libname sasdata2 '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+
+data fortune_attrition; set sasdata2.fortune_attrition; run;
+
+libname sasdata3 '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+
+data fortune_hr; set sasdata3.fortune_hr; run;
+
+libname sasdata4 '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+
+data fortune_survey; set sasdata4.fortune_survey; run;
+
+
+/*Importing non SAS data*/
+proc import datafile = '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4/fortune_credit.csv' out = fortune_credit; run;
+
+data fortune_credit; set fortune_credit; run;
+
+
+
+
+
+/*Begin Audit*/
+/*PART ONE*/
+
+
+
+
+
+/*fortune_acct*/
+
+/*PROC CONTENTS for viewing summary-level dataset contents */ 
+proc contents data= fortune_acct; run; 
+
+/*PROC PRINT for viewing row-level dataset contents. */ 
+proc print data=fortune_acct (firstobs = 1 obs =10); run; 
+
+
+
+/*DailyRate => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_acct n nmiss min mean max; var DailyRate; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_acct; tables DailyRate; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_acct; var DailyRate; histogram DailyRate; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct DailyRate) into: count from fortune_acct; quit; 
+proc sql; select count(*) into: obs from fortune_acct; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*Department => Character*/
+ 
+/*PROC FREQ and Bargraph*/ 
+proc freq data=fortune_acct; tables Department / plots = (freqplot); run; 
+
+/*PROC UNIVARIATE*/
+%let dsin = fortune_acct;
+%let char_var = Department;
+
+%let len_char_var 	= len_&char_var;
+data length; set &dsin;
+	&len_char_var = length(&char_var);
+run;
+	proc means data=length n nmiss min mean median max; var &len_char_var ;run;
+	
+proc univariate data=length noprint; run;
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct Department) into: count from fortune_acct; quit; 
+proc sql; select count(*) into: obs from fortune_acct; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*HourlyRate => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_acct n nmiss min mean max; var HourlyRate; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_acct; tables HourlyRate; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_acct; var HourlyRate; histogram HourlyRate; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct HourlyRate) into: count from fortune_acct; quit; 
+proc sql; select count(*) into: obs from fortune_acct; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*MonthlyIncome => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_acct n nmiss min mean max; var MonthlyIncome; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_acct; tables MonthlyIncome; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_acct; var MonthlyIncome; histogram MonthlyIncome; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct MonthlyIncome) into: count from fortune_acct; quit; 
+proc sql; select count(*) into: obs from fortune_acct; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*OverTime => Character*/
+ 
+/*PROC FREQ and Bargraph*/ 
+proc freq data=fortune_acct; tables Overtime / plots = (freqplot); run; 
+
+/*PROC UNIVARIATE*/
+%let dsin = fortune_acct;
+%let char_var = Overtime;
+
+%let len_char_var 	= len_&char_var;
+data length; set &dsin;
+	&len_char_var = length(&char_var);
+run;
+	proc means data=length n nmiss min mean median max; var &len_char_var ;run;
+	
+proc univariate data=length noprint; run;
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct OverTime) into: count from fortune_acct; quit; 
+proc sql; select count(*) into: obs from fortune_acct; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*PercentSalaryHike => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_acct n nmiss min mean max; var PercentSalaryHike; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_acct; tables PercentSalaryHike; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_acct; var PercentSalaryHike; histogram PercentSalaryHike; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct PercentSalaryHike) into: count from fortune_acct; quit; 
+proc sql; select count(*) into: obs from fortune_acct; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*PerformanceRating => Categorical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_acct n nmiss min mean max; var PerformanceRating; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_acct; tables PerformanceRating; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_acct; var PerformanceRating; histogram PerformanceRating; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct PerformanceRating) into: count from fortune_acct; quit; 
+proc sql; select count(*) into: obs from fortune_acct; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*StockOptionLevel => Categorical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_acct n nmiss min mean max; var StockOptionLevel; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_acct; tables StockOptionLevel; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_acct; var StockOptionLevel; histogram StockOptionLevel; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct StockOptionLevel) into: count from fortune_acct; quit; 
+proc sql; select count(*) into: obs from fortune_acct; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*employee_no => Character*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_acct n nmiss min mean max; var employee_no; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_acct; tables employee_no; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_acct; var employee_no; histogram employee_no; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct employee_no) into: count from fortune_acct; quit; 
+proc sql; select count(*) into: obs from fortune_acct; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*ssn => Character*/
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_acct; tables ssn; run; 
+
+/*PROC UNIVARIATE*/
+%let dsin = fortune_acct;
+%let char_var = ssn;
+
+%let len_char_var 	= len_&char_var;
+data length; set &dsin;
+	&len_char_var = length(&char_var);
+run;
+	proc means data=length n nmiss min mean median max; var &len_char_var ;run;
+	
+proc univariate data=length noprint;
+	histogram &len_char_var; run;
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct ssn) into: count from fortune_acct; quit; 
+proc sql; select count(*) into: obs from fortune_acct; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+
+
+/*NEXT DATA SET*/
+
+
+
+/*fortune_attrition*/
+
+/*PROC CONTENTS for viewing summary-level dataset contents */ 
+proc contents data= fortune_attrition; run; 
+
+/*PROC PRINT for viewing row-level dataset contents. */ 
+proc print data=fortune_attrition (firstobs = 1 obs =10); run; 
+
+
+
+/*depart_dt => Date*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_attrition n nmiss min mean max; var depart_dt; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_attrition; tables depart_dt; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_attrition; var depart_dt; histogram depart_dt; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct depart_dt) into: count from fortune_attrition; quit; 
+proc sql; select count(*) into: obs from fortune_attrition; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*employee_no => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_attrition n nmiss min mean max; var employee_no; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_attrition; tables employee_no; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_attrition; var employee_no; histogram employee_no; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct employee_no) into: count from fortune_attrition; quit; 
+proc sql; select count(*) into: obs from fortune_attrition; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+
+/*NEXT DATA SET*/
+
+
+
+/*fortune_hr*/
+
+/*PROC CONTENTS for viewing summary-level dataset contents */ 
+proc contents data= fortune_hr; run; 
+
+/*PROC PRINT for viewing row-level dataset contents. */ 
+proc print data=fortune_hr (firstobs = 1 obs =10); run; 
+
+
+
+/*Education => Categorical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_hr n nmiss min mean max; var Education; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_hr; tables Education; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_hr; var Education; histogram Education; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct Education) into: count from fortune_hr; quit; 
+proc sql; select count(*) into: obs from fortune_hr; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*EducationField => Character*/
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_hr; tables EducationField; run; 
+
+/*PROC UNIVARIATE*/
+%let dsin = fortune_hr;
+%let char_var = EducationField;
+
+%let len_char_var 	= len_&char_var;
+data length; set &dsin;
+	&len_char_var = length(&char_var);
+run;
+	proc means data=length n nmiss min mean median max; var &len_char_var ;run;
+	
+proc univariate data=length noprint;
+	histogram &len_char_var; run;
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct EducationField) into: count from fortune_hr; quit; 
+proc sql; select count(*) into: obs from fortune_hr; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*Gender => Character*/
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_hr; tables gender; run; 
+
+/*PROC UNIVARIATE*/
+%let dsin = fortune_hr;
+%let char_var = gender;
+
+%let len_char_var 	= len_&char_var;
+data length; set &dsin;
+	&len_char_var = length(&char_var);
+run;
+	proc means data=length n nmiss min mean median max; var &len_char_var ;run;
+	
+proc univariate data=length noprint;
+	histogram &len_char_var; run;
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct gender) into: count from fortune_hr; quit; 
+proc sql; select count(*) into: obs from fortune_hr; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*birth_dt => Date*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_hr n nmiss min mean max; var birth_dt; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_hr; tables birth_dt; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_hr; var birth_dt; histogram birth_dt; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct birth_dt) into: count from fortune_hr; quit; 
+proc sql; select count(*) into: obs from fortune_hr; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*birth_state => Character*/
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_hr; tables birth_state; run; 
+
+/*PROC UNIVARIATE*/
+%let dsin = fortune_hr;
+%let char_var = birth_state;
+
+%let len_char_var 	= len_&char_var;
+data length; set &dsin;
+	&len_char_var = length(&char_var);
+run;
+	proc means data=length n nmiss min mean median max; var &len_char_var ;run;
+	
+proc univariate data=length noprint;
+	histogram &len_char_var; run;
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct birth_state) into: count from fortune_hr; quit; 
+proc sql; select count(*) into: obs from fortune_hr; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*employee_no => Character*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_hr n nmiss min mean max; var employee_no; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_hr; tables employee_no; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_hr; var employee_no; histogram employee_no; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct employee_no) into: count from fortune_hr; quit; 
+proc sql; select count(*) into: obs from fortune_hr; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*first_name => Character*/
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_hr; tables first_name; run; 
+
+/*PROC UNIVARIATE*/
+%let dsin = fortune_hr;
+%let char_var = first_name;
+
+%let len_char_var 	= len_&char_var;
+data length; set &dsin;
+	&len_char_var = length(&char_var);
+run;
+	proc means data=length n nmiss min mean median max; var &len_char_var ;run;
+	
+proc univariate data=length noprint;
+	histogram &len_char_var; run;
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct first_name) into: count from fortune_hr; quit; 
+proc sql; select count(*) into: obs from fortune_hr; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*hire_dt => Date*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_hr n nmiss min mean max; var hire_dt; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_hr; tables hire_dt; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_hr; var hire_dt; histogram hire_dt; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct hire_dt) into: count from fortune_hr; quit; 
+proc sql; select count(*) into: obs from fortune_hr; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+
+/*NEXT DATA SET*/
+
+
+
+/*fortune_survey*/
+
+/*PROC CONTENTS for viewing summary-level dataset contents */ 
+proc contents data= fortune_survey; run; 
+
+/*PROC PRINT for viewing row-level dataset contents. */ 
+proc print data=fortune_survey (firstobs = 1 obs =10); run; 
+
+
+
+/*BusinessTravel => Categorical*/
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables BusinessTravel; run; 
+
+/*PROC UNIVARIATE*/
+%let dsin = fortune_survey;
+%let char_var = BusinessTravel;
+
+%let len_char_var 	= len_&char_var;
+data length; set &dsin;
+	&len_char_var = length(&char_var);
+run;
+	proc means data=length n nmiss min mean median max; var &len_char_var ;run;
+	
+proc univariate data=length noprint;
+	histogram &len_char_var; run;
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct BusinessTravel) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*DistanceFromHome => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var DistanceFromHome; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables DistanceFromHome; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var DistanceFromHome; histogram DistanceFromHome; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct DistanceFromHome) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*EnvironmentSatisfaction => Categorical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var EnvironmentSatisfaction; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables EnvironmentSatisfaction; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var EnvironmentSatisfaction; histogram EnvironmentSatisfaction; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct EnvironmentSatisfaction) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*JobInvolvement => Categorical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var jobinvolvement; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables jobinvolvement; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var jobinvolvement; histogram jobinvolvement; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct jobinvolvement) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*JobLevel => Categorical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var JobLevel; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables JobLevel; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var JobLevel; histogram JobLevel; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct JobLevel) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*JobSatisfaction => Categorical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var jobsatisfaction; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables jobsatisfaction; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var jobsatisfaction; histogram jobsatisfaction; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct jobsatisfaction) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*MaritalStatus => Character*/
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables maritalstatus; run; 
+
+/*PROC UNIVARIATE*/
+%let dsin = fortune_survey;
+%let char_var = maritalstatus;
+
+%let len_char_var 	= len_&char_var;
+data length; set &dsin;
+	&len_char_var = length(&char_var);
+run;
+	proc means data=length n nmiss min mean median max; var &len_char_var ;run;
+	
+proc univariate data=length noprint;
+	histogram &len_char_var; run;
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct maritalstatus) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*NumCompaniesWorked => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var numcompaniesworked; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables numcompaniesworked; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var numcompaniesworked; histogram numcompaniesworked; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct numcompaniesworked) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*RelationshipSatisfaction => Categorical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var relationshipsatisfaction; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables relationshipsatisfaction; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var relationshipsatisfaction; histogram relationshipsatisfaction; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct relationshipsatisfaction) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*TotalWorkingYears => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var totalworkingyears; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables totalworkingyears; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var totalworkingyears; histogram totalworkingyears; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct totalworkingyears) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*TrainingTimesLastYear => Categorical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var trainingtimeslastyear; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables trainingtimeslastyear; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var trainingtimeslastyear; histogram trainingtimeslastyear; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct trainingtimeslastyear) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*WorkLifeBalance => Categorical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var worklifebalance; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables worklifebalance; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var worklifebalance; histogram worklifebalance; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct worklifebalance) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*YearsInCurrentRole => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var yearsincurrentrole; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables yearsincurrentrole; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var yearsincurrentrole; histogram yearsincurrentrole; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct yearsincurrentrole) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*YearsSinceLastPromotion => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var yearssincelastpromotion; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables yearssincelastpromotion; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var yearssincelastpromotion; histogram yearssincelastpromotion; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct yearssincelastpromotion) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*YearsWithCurrentManager => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var yearswithcurrmanager; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables yearswithcurrmanager; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var yearswithcurrmanager; histogram yearswithcurrmanager; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct yearswithcurrmanager) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*employee_no => Character*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_survey n nmiss min mean max; var employee_no; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_survey; tables employee_no; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_survey; var employee_no; histogram employee_no; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct employee_no) into: count from fortune_survey; quit; 
+proc sql; select count(*) into: obs from fortune_survey; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+
+/*NEXT DATA SET*/
+
+
+
+/*fortune_credit*/
+
+/*PROC CONTENTS for viewing summary-level dataset contents */ 
+proc contents data= fortune_credit; run; 
+
+/*PROC PRINT for viewing row-level dataset contents. */ 
+proc print data=fortune_credit (firstobs = 1 obs =10); run; 
+
+
+
+/*fico_scr => Numerical*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_credit n nmiss min mean max; var fico_scr; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_credit; tables fico_scr; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_credit; var fico_scr; histogram fico_scr; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct fico_scr) into: count from fortune_credit; quit; 
+proc sql; select count(*) into: obs from fortune_credit; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+/*ssn => Character*/
+
+/*PROC MEANS*/ 
+proc means data=fortune_credit n nmiss min mean max; var ssn; run;
+ 
+/*PROC FREQ*/ 
+proc freq data=fortune_credit; tables ssn; run; 
+
+/*PROC UNIVARIATE and Histogram*/ 
+proc univariate data=fortune_credit; var ssn; histogram ssn; run; 
+
+/*Records, Distinct, Distinct%*/
+proc sql; select count(distinct ssn) into: count from fortune_credit; quit; 
+proc sql; select count(*) into: obs from fortune_credit; quit; 
+proc delete data=print; run; 
+
+data print; 
+    Records = &obs; 
+    Distinct = &count; 
+    DistinctPct = &count/&obs; 
+    format Records comma9.; 
+    format Distinct comma9.; 
+    format DistinctPct percent10.2; 
+run;
+	
+proc print data=print noobs; run;
+
+
+
+
+
+
+
+
+
+
+/*DATA MERGE*/
+
+/*convert ssn in fortune_acct from char to num*/
+
+proc sort data = fortune_acct; by ssn; run;
+
+data fortune_acct; set fortune_acct;
+	ssn_clean = transtrn(ssn,"-",trimn(''));
+run;
+
+data fortune_acct; set fortune_acct;
+	ssn_num = input(ssn_clean,10.);
+		drop ssn;
+run;
+
+data fortune_acct; set fortune_acct;
+	rename ssn_num = ssn;
+run;
+
+proc print data = fortune_acct (firstobs = 1 obs = 10); run;
+
+
+proc sort data = fortune_acct; by ssn; run;
+proc sort data = fortune_credit; by ssn; run;
+
+data fortune_merged1; merge fortune_acct(in=a) fortune_credit(in=b); by ssn; if a; run;
+
+proc sort data = fortune_merged1; by employee_no; run;
+proc sort data = fortune_attrition; by employee_no; run;
+proc sort data = fortune_hr; by employee_no; run;
+proc sort data = fortune_survey; by employee_no; run;
+
+data fortune_merged; merge fortune_survey(in=a) fortune_attrition(in=b) fortune_hr(in=c) fortune_merged1(in=d); by employee_no; if a; run;
+
+
+
+
+proc sql noprint; select count(*) into: total_records from fortune_merged; quit;		
+proc sql noprint; select count(distinct employee_no) into: target_sample from fortune_merged; quit;
+proc sql noprint; select count(distinct employee_no) into: events from fortune_merged where depart_dt not in(.); quit;
+proc sql noprint; select count(distinct employee_no) into: non_events from fortune_merged where depart_dt in (.); quit;
+
+
+data print; total_records = &total_Records; target_sample = &target_sample; events = &events; non_events = &non_events; run;
+		
+proc print data = print; run;
+
