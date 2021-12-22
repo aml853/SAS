@@ -1,0 +1,216 @@
+/*Importing the SAS file*/
+libname sasdata '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+
+data fortune_acct; set sasdata.fortune_acct; run;
+
+libname sasdata2 '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+
+data fortune_attrition; set sasdata2.fortune_attrition; run;
+
+libname sasdata3 '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+
+data fortune_hr; set sasdata3.fortune_hr; run;
+
+libname sasdata4 '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+
+data fortune_survey; set sasdata4.fortune_survey; run;
+
+
+/*Importing non SAS data*/
+proc import datafile = '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4/fortune_credit.csv' out = fortune_credit; run;
+
+data fortune_credit; set fortune_credit; run;
+
+
+
+
+
+/*PART TWO*/
+
+
+/*Question One*/
+
+proc sort data=fortune_merged out=clean nodupkey;
+	by employee_no; run;
+
+
+/*Before and after Deduplication Obs*/
+
+proc sql; select count(*) into : nobs from fortune_merged; quit; 
+ 
+
+proc sql; select count(*) into : nobs from clean; quit;
+
+
+/*Question Two*/
+/*Creating Age and Tenutre Variables*/
+
+/*Age*/
+
+data fortune_merged_dup; set fortune_merged_dup;
+	analysis_date = mdy(6,01,2018);
+	age = floor(yrdif(birth_dt, analysis_date,'Actual'));
+run;
+
+proc print data = fortune_merged_dup (firstobs=1 obs=10); run;
+
+/*Tenure*/
+
+data fortune_merged_dup; set fortune_merged_dup;
+analysis_date = mdy(06,01,18);
+if not missing(depart_dt) then Age = floor(yrdif(hire_dt, depart_dt,'Actual'));
+if missing(depart_dt) then TENURE = floor(yrdif(hire_dt, analysis_date,'Actual')); 
+else TENURE = floor(yrdif(hire_dt, depart_dt,'Actual')); run;
+
+proc print data = fortune_merged_dup (firstobs=1 obs=10); run;
+
+/*Question Three*/
+
+proc univariate data=fortune_merged_dup; var age tenure; histogram age tenure/normal; run;
+
+/*Question Four*/
+
+data fortune_merged_dup; set fortune_merged_dup;
+		if not missing(depart_dt) then ATT_Q = 1;
+		else ATT_Q = 0; run;
+	
+proc freq data = fortune_merged_dup; table ATT_Q; run;
+
+
+
+
+
+
+/*PART THREE*/
+
+/*Question 1,2, and 3*/
+
+/*Age*/
+
+/*Equal Height*/ 
+%let anal_var = age;
+%let target_var = ATT_Q;
+%let dsn = fortune_merged_dup;
+ 
+proc hpbin data=&dsn output=fortune_merged_dup_bin numbin=5 pseudo_quantile; ods output mapping=mapping; input &anal_var; run;
+proc hpbin data=&dsn woe bins_meta=mapping; target &target_var / level=binary order=desc; run;
+
+/*Equal Width*/
+%let anal_var = age;
+%let target_var = ATT_Q;
+%let dsn = fortune_merged_dup;
+
+proc hpbin data=&dsn output=fortune_merged_dup_bin numbin=10 bucket; ods output mapping=mapping; input &anal_var; run;
+proc hpbin data=&dsn woe bins_meta=mapping; target &target_var / level=binary order=desc; run;
+
+/*Tenure*/
+
+/*Equal Height*/ 
+%let anal_var = tenure;
+%let target_var = ATT_Q;
+%let dsn = fortune_merged_dup;
+ 
+proc hpbin data=&dsn output=fortune_merged_dup_bin numbin=4 pseudo_quantile; ods output mapping=mapping; input &anal_var; run;
+proc hpbin data=&dsn woe bins_meta=mapping; target &target_var / level=binary order=desc; run;
+
+/*Equal Width*/
+%let anal_var = tenure;
+%let target_var = ATT_Q;
+%let dsn = fortune_merged_dup;
+
+proc hpbin data=&dsn output=fortune_merged_dup_bin numbin=2 bucket; ods output mapping=mapping; input &anal_var; run;
+proc hpbin data=&dsn woe bins_meta=mapping; target &target_var / level=binary order=desc; run;
+
+/*Question Four*/
+
+/*Age*/
+
+data bin; set &dsn; 
+	if age in(.) then dum_age_miss = 1; else dum_age_miss = 0; 
+	if age > 0  and age < 30 then dum_age_lt30 = 1; else dum_age_lt30 = 0; 
+	if age >= 30  and age < 35 then dum_age_30_34 = 1; else dum_age_30_34 = 0; 
+	if age >= 35  and age < 39 then dum_age_35_38 = 1; else dum_age_35_38 = 0; 
+	if age >= 39  and age < 46 then dum_age_39_45 = 1; else dum_age_39_45 = 0; 
+	if age >= 46               then dum_age_gt45 = 1; else dum_age_gt45 = 0; 
+run; 
+
+	proc sort data=bin; by &target_var; run; 
+	proc means data=bin sum; var dum_age_miss dum_age_lt30 dum_age_30_34 dum_age_35_38 dum_age_39_45 dum_age_gt45; output out=tmp_sum 
+		sum = dum_age_miss dum_age_lt30 dum_age_30_34 dum_age_35_38 dum_age_39_45 dum_age_gt45; by &target_var; run; 
+		
+		proc transpose data=tmp_sum out=tmp_sum_t; id &target_var; run; 
+			proc print data=tmp_sum_t; run;
+
+
+/*Tenure*/
+
+data bin1; set &dsn; 
+	if tenure in(.) then dum_tenure_miss = 1; else dum_tenure_miss = 0; 
+	if tenure > 0  and tenure < 3 then dum_tenure_lt3 = 1; else dum_tenure_lt3 = 0; 
+	if tenure >= 3  and tenure < 5 then dum_tenure_3_5 = 1; else dum_tenure_3_5 = 0; 
+	if tenure >= 5  and tenure < 6 then dum_tenure_5_6 = 1; else dum_tenure_5_6 = 0; 
+	if tenure >= 6  and tenure < 9 then dum_tenure_6_9 = 1; else dum_tenure_6_9 = 0;
+	if tenure >= 9  and tenure < 12 then dum_tenure_9_12 = 1; else dum_tenure_9_12 = 0;
+	if tenure >= 12               then dum_tenure_gt12 = 1; else dum_tenure_gt12 = 0; 
+run; 
+
+	proc sort data=bin1; by &target_var; run; 
+	proc means data=bin1 sum; var dum_tenure_miss dum_tenure_lt3 dum_tenure_3_5 dum_tenure_5_6 dum_tenure_6_9 dum_tenure_9_12 dum_tenure_gt12; output out=tmp_sum 
+		sum = dum_tenure_miss dum_tenure_lt3 dum_tenure_3_5 dum_tenure_5_6 dum_tenure_6_9 dum_tenure_9_12 dum_tenure_gt12; by &target_var; run; 
+		
+		proc transpose data=tmp_sum out=tmp_sum_t; id &target_var; run; 
+			proc print data=tmp_sum_t; run;
+
+
+
+
+
+
+/*Task Four*/
+
+/*Age*/
+
+%let bin_vars = dum_age_miss dum_age_lt30 dum_age_30_34 dum_age_35_38 dum_age_39_45 dum_age_gt45; 
+
+%let target_var = ATT_Q;
+
+
+proc corr data=bin out=corr; var &target_var;
+	with &bin_vars; run; 
+
+data corr; set corr; where _TYPE_ in("CORR");
+	rename &target_var = corr;
+	abs_corr = abs(&target_var); run;  
+
+proc sort data=corr; by descending abs_corr; run; 
+
+	proc print data=corr (firstobs = 1 obs = 10);
+		var _name_ abs_corr; run; 
+		
+/*Tenure*/
+
+%let bin_vars = dum_tenure_miss dum_tenure_lt3 dum_tenure_3_5 dum_tenure_5_6 dum_tenure_6_9 dum_tenure_9_12 dum_tenure_gt12; 
+
+%let target_var = ATT_Q;
+
+
+proc corr data=bin1 out=corr; var &target_var;
+	with &bin_vars; run; 
+
+data corr; set corr; where _TYPE_ in("CORR");
+	rename &target_var = corr;
+	abs_corr = abs(&target_var); run;  
+
+proc sort data=corr; by descending abs_corr; run; 
+
+	proc print data=corr (firstobs = 1 obs = 10);
+		var _name_ abs_corr; run; 
+
+
+
+
+
+/*EC*/
+
+proc univariate data = fortune_merged_dup nextrobs=6; format hire_dt mmddyy10.; var hire_dt;
+	histogram hire_dt / normal; run;
