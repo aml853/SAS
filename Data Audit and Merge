@@ -1,23 +1,23 @@
 /*Importing the SAS file*/
-libname sasdata '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+libname sasdata '/home/u59829215/my_shared_file_links/adamleblanc/';
 
 data fortune_acct; set sasdata.fortune_acct; run;
 
-libname sasdata2 '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+libname sasdata2 '/home/u59829215/my_shared_file_links/adamleblanc/';
 
 data fortune_attrition; set sasdata2.fortune_attrition; run;
 
-libname sasdata3 '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+libname sasdata3 '/home/u59829215/my_shared_file_links/adamleblanc/';
 
 data fortune_hr; set sasdata3.fortune_hr; run;
 
-libname sasdata4 '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4';
+libname sasdata4 '/home/u59829215/my_shared_file_links/adamleblanc/';
 
 data fortune_survey; set sasdata4.fortune_survey; run;
 
 
 /*Importing non SAS data*/
-proc import datafile = '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 4/fortune_credit.csv' out = fortune_credit; run;
+proc import datafile = '/home/u59829215/my_shared_file_links/adamleblanc/fortune_credit.csv' out = fortune_credit; run;
 
 data fortune_credit; set fortune_credit; run;
 
