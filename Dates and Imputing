@@ -1,0 +1,410 @@
+/*Importing the Data*/
+
+libname sasdata '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 2/';
+
+data donor_census; set sasdata.s_pml_donor_hw_v3; run;
+
+proc print data = donor_census (firstobs=1 obs=10); run;
+
+
+
+
+/*Part 1*/
+
+
+
+
+/*Changing the format of the selected variables too the desired MM/DD/YYYY format*/
+
+proc print data=donor_census (firstobs=1 obs=10); var MONTHS_SINCE_ORIGIN MONTHS_SINCE_FIRST_GIFT MONTHS_SINCE_LAST_GIFT; 
+	format MONTHS_SINCE_ORIGIN MONTHS_SINCE_FIRST_GIFT MONTHS_SINCE_LAST_GIFT mmddyy10.; run;
+	
+proc freq data=donor_census; tables MONTHS_SINCE_ORIGIN MONTHS_SINCE_FIRST_GIFT MONTHS_SINCE_LAST_GIFT;
+	format MONTHS_SINCE_ORIGIN MONTHS_SINCE_FIRST_GIFT MONTHS_SINCE_LAST_GIFT mmddyy10.; run;
+	
+	
+
+/*Creating new variables*/
+
+data ENTRY_DATE; set donor_census;
+	format ENTRY_DATE mmddyy10.;
+	analysis_date = mdy(8,01,1998);	
+	*ENTRY_DATE = analysis_date - MONTHS_SINCE_ORIGIN; 
+	ENTRY_DATE = intnx('month', analysis_date, -MONTHS_SINCE_ORIGIN); run;
+	
+		proc print data = ENTRY_DATE (firstobs=1 obs=10); format ENTRY_DATE analysis_date mmddyy10.; run;
+
+data FIRST_GIFT_DATE; set donor_census;
+	format FIRST_GIFT_DATE mmddyy10.;
+	analysis_date = mdy(8,01,1998);	
+	*FIRST_GIFT_DATE = analysis_date - MONTHS_SINCE_FIRST_GIFT;
+	FIRST_GIFT_DATE = intnx('month', analysis_date, -MONTHS_SINCE_FIRST_GIFT); run;
+	
+		proc print data = FIRST_GIFT_DATE (firstobs=1 obs=10); format FIRST_GIFT_DATE analysis_date mmddyy10.; run;
+
+data LAST_GIFT_DATE; set donor_census;
+	format LAST_GIFT_DATE mmddyy10.;
+	analysis_date = mdy(8,01,1998);	
+	*LAST_GIFT_DATE = analysis_date - MONTHS_SINCE_LAST_GIFT;
+	LAST_GIFT_DATE = intnx('month', analysis_date, -MONTHS_SINCE_LAST_GIFT); run;
+	
+		proc print data = LAST_GIFT_DATE (firstobs=1 obs=10); format LAST_GIFT_DATE analysis_date mmddyy10.; run;
+
+
+
+/*Sorting before the merge*/
+
+proc sort data = ENTRY_DATE; by control_number; run;
+proc sort data = FIRST_GIFT_DATE; by control_number; run;
+proc sort data = LAST_GIFT_DATE; by control_number; run;
+
+
+
+/*Merging the new variables*/
+
+data merged; merge ENTRY_DATE(in=a) FIRST_GIFT_DATE(in=b) LAST_GIFT_DATE(in=c); by control_number; if a; run;
+
+proc contents data = merged; run;
+proc print data = merged (firstobs=1 obs=10); format analysis_date ENTRY_DATE FIRST_GIFT_DATE LAST_GIFT_DATE mmddyy10.; run;
+
+
+/*Getting median months between first and last*/
+
+data merged; set merged;
+	first_last_gift = intck('month', first_gift_date, last_gift_Date);
+	run;
+
+proc print data=merged(firstobs=1 obs=10); run;
+
+proc means data = merged  n nmiss min max mean median stddev; var first_last_gift;
+run;
+
+		
+/*Computational Statistics*/
+
+/*PROC TABULATE for ENTRY_DATE*/ 
+proc tabulate data=merged; var ENTRY_DATE;
+	table ENTRY_DATE, n nmiss (min mean median max)*f=mmddyy10.; run;
+ 
+/*PROC TABULATE for FIRST_GIFT_DATE*/ 
+proc tabulate data=merged; var FIRST_GIFT_DATE;
+	table FIRST_GIFT_DATE, n nmiss (min mean median max)*f=mmddyy10.; run;
+ 
+/*PROC TABULATE for LAST_GIFT_DATE*/ 
+proc tabulate data=merged; var LAST_GIFT_DATE;
+	table LAST_GIFT_DATE, n nmiss (min mean median max)*f=mmddyy10.; run;
+ 
+ 
+
+/*PROC UNIVARIATE and Histogram for ENTRY_DATE & FIRST_GIFT_DATE*/
+proc univariate data=merged; var ENTRY_DATE; histogram ENTRY_DATE ; run;
+proc univariate data=merged; var FIRST_GIFT_DATE; histogram FIRST_GIFT_DATE; run;
+
+
+/*Question 3*/
+/* SAS YEAR() Fields*/
+
+data merged; set merged;
+	format ENTRY_DATE_YEAR YYYY;
+	ENTRY_DATE_YEAR = year(ENTRY_DATE); run;
+
+proc print data = merged(firstobs=1 obs=10); run;
+
+data merged; set merged;
+	format FIRST_GIFT_DATE_YEAR YYYY;
+	FIRST_GIFT_DATE_YEAR = year(FIRST_GIFT_DATE); run;
+	
+proc print data = merged(firstobs=1 obs=10); run;	
+	
+data merged; set merged;
+	format LAST_GIFT_DATE_YEAR YYYY;
+	LAST_GIFT_DATE_YEAR = year(LAST_GIFT_DATE); run;
+
+proc print data = merged(firstobs=1 obs=10); run;	
+
+/*Question 3 a*/
+proc freq data=merged; tables ENTRY_DATE_YEAR; run;
+
+
+/*Question 3 b*/
+proc sort data = merged; by LAST_GIFT_DATE_YEAR; run;
+
+proc means data = merged; var LAST_GIFT_AMT; by LAST_GIFT_DATE_YEAR;
+output out = LAST_GIFT_AMT(drop =_type_ _freq_) mean = MEAN_PER_YEAR; run;
+
+	proc print data = LAST_GIFT_AMT; run;
+
+/*Question 3 c*/
+proc sort data = merged; by LAST_GIFT_DATE_YEAR CLUSTER_CODE; run;
+
+proc means data = merged mean; var LAST_GIFT_AMT; by LAST_GIFT_DATE_YEAR CLUSTER_CODE;
+output out = MEAN_LAST_GIFT_AMT(drop =_type_ _freq_) mean = MEAN_LAST_GIFT_AMT; run;
+
+proc print data = MEAN_LAST_GIFT_AMT; run;
+
+proc sql; select * from MEAN_LAST_GIFT_AMT where LAST_GIFT_DATE_YEAR=1997 and CLUSTER_CODE=9;
+
+
+
+/*Question 4 a b c and d*/
+proc sgplot data = merged; hbox ENTRY_DATE; run;
+
+
+
+/*Question 5 i*/
+proc univariate data = merged; var ENTRY_DATE; 
+	output out = hand_calc_date median = hand_calc_date; run;
+	
+proc print data = hand_calc_date; run;
+
+
+data hand_calc_date; set hand_calc_date;
+	median_entry_years = (hand_calc_date/365.25);
+	median_entry_years = 1960 + median_entry_years;
+	run;
+proc print data=hand_calc_date; run;
+
+/*Question 5 ii*/
+proc univariate data = merged; var ENTRY_DATE; 
+	output out = ENTRY_DT_MEDIAN median = ENTRY_DT_MEDIAN; run;
+	
+data ENTRY_DT_MEDIAN ; set ENTRY_DT_MEDIAN;
+	format ENTRY_DT_MEDIAN mmddyy10.;
+	MEDIAN_DAYS = ENTRY_DT_MEDIAN;
+	SAS_DATE = mdy(01,01,1960);
+	ENTRY_DT_MEDIAN = intnx('days', SAS_DATE, MEDIAN_DAYS);
+	run;
+
+proc print data = ENTRY_DT_MEDIAN; run;
+
+
+
+
+/*Question 5 b*/
+
+proc sort data = merged; by ENTRY_DATE; run;
+
+proc univariate data = merged outtable= QUANTILE_TABLE; var ENTRY_DATE; run;
+proc print data = QUANTILE_TABLE; run;
+
+data QUANTILE_TABLE; set QUANTILE_TABLE;
+	format _Q1_ _Q3_ mmddyy10.; run;
+
+proc print data = QUANTILE_TABLE; run;
+
+
+
+
+/*Question 6 using Tableau*/
+
+
+
+
+/*Part 2*/
+
+
+
+
+/*Question 1 b Observed and Median-value*/
+
+proc print data = merged(firstobs=1 obs=10); run;
+
+data merged_imputed; set merged;
+DONOR_AGE_IMPUTED = DONOR_AGE;
+DONOR_AGE_DUM = missing(DONOR_AGE); run;
+
+proc means data=merged_imputed nmiss mean median min max std mode; var DONOR_AGE DONOR_AGE_IMPUTED; run;
+proc univariate data=merged_imputed; var DONOR_AGE_IMPUTED; histogram DONOR_AGE_IMPUTED; run;
+
+proc stdize data=merged_imputed	
+		method=median
+		reponly
+		out=imputed;
+		var DONOR_AGE_IMPUTED;
+run;
+
+proc means data=imputed nmiss n mean median min max std mode; var DONOR_AGE DONOR_AGE_IMPUTED; run;
+	
+/*proc univariate data=imputed;
+		var DONOR_AGE DONOR_AGE_IMPUTED;
+		*histogram DONOR_AGE DONOR_AGE_IMPUTED;
+	run;*/
+	
+proc sgplot data=imputed;
+		histogram DONOR_AGE / binwidth = 5 transparency=.5;
+		histogram DONOR_AGE_IMPUTED / binwidth = 5 transparency=.5;
+	run;
+
+
+
+
+/*Question 1 b Median-value segmentation*/
+
+proc rank data=merged_imputed out=rank groups=12; 
+    var MEDIAN_HOUSEHOLD_INCOME; ranks MEDIAN_HOUSEHOLD_INCOME_GRP; run;
+ 
+proc means data=rank median; 
+    class MEDIAN_HOUSEHOLD_INCOME_GRP; var DONOR_AGE_IMPUTED; run;
+
+proc sort data=rank; by MEDIAN_HOUSEHOLD_INCOME_GRP; run; 
+
+proc stdize data=rank 
+    method=median 
+    reponly 
+    out=imputed; 
+    var DONOR_AGE_IMPUTED; 
+    by MEDIAN_HOUSEHOLD_INCOME_GRP; run; 
+
+proc means data=imputed nmiss n mean median min max std mode; var DONOR_AGE DONOR_AGE_IMPUTED; run;
+	
+/*proc univariate data=imputed;
+		var DONOR_AGE DONOR_AGE_IMPUTED;
+		*histogram DONOR_AGE DONOR_AGE_IMPUTED;
+	run;*/
+	
+proc sgplot data=imputed;
+		histogram DONOR_AGE / binwidth = 5 transparency=.5;
+		histogram DONOR_AGE_IMPUTED / binwidth = 5 transparency=.5;
+	run; 
+
+
+
+
+
+/*Question 1 b Hot-deck*/
+
+proc surveyimpute data=merged_imputed method=hotdeck(selection=srswr) seed=12345;
+		var DONOR_AGE_IMPUTED MEDIAN_HOME_VALUE MEDIAN_HOUSEHOLD_INCOME	MONTHS_SINCE_ORIGIN;
+    	output out=imputed; run;
+    	
+proc print data = imputed(firstobs=1 obs=10); run;
+
+proc means data=imputed nmiss n mean median min max std mode; var DONOR_AGE DONOR_AGE_IMPUTED; run;
+	
+/*proc univariate data=imputed;
+		var DONOR_AGE DONOR_AGE_IMPUTED;
+		*histogram DONOR_AGE DONOR_AGE_IMPUTED;
+	run;*/
+	
+proc sgplot data=imputed;
+		histogram DONOR_AGE / binwidth = 5 transparency=.5;
+		histogram DONOR_AGE_IMPUTED / binwidth = 5 transparency=.5;
+	run;     
+
+
+
+
+/*Question 1 b Stochastic regression*/
+
+data merged_imputed; set merged_imputed; 
+
+%let DONOR_AGE_IMPUTED_1 = MEDIAN_HOME_VALUE MEDIAN_HOUSEHOLD_INCOME MONTHS_SINCE_ORIGIN;
+
+proc mi data= merged_imputed nimpute=1 seed=12345
+ 	out=imputed; 
+	fcs nbiter=1;   
+	var DONOR_AGE_IMPUTED &DONOR_AGE_IMPUTED_1; 
+run;
+
+proc means data=imputed nmiss n mean median min max std mode; var DONOR_AGE DONOR_AGE_IMPUTED; run;
+	
+/*proc univariate data=imputed;
+		var DONOR_AGE DONOR_AGE_IMPUTED;
+		*histogram DONOR_AGE DONOR_AGE_IMPUTED;
+	run;*/
+	
+proc sgplot data=imputed;
+		histogram DONOR_AGE / binwidth = 5 transparency=.5;
+		histogram DONOR_AGE_IMPUTED / binwidth = 5 transparency=.5;
+	run;  
+
+
+
+
+/*Question 2*/
+
+data merged_imputed; set merged;
+
+WEALTH_RATING_IMPUTED =	WEALTH_RATING;
+WEALTH_RATING_IMPUTED_DUM =	missing(WEALTH_RATING);
+	run;
+
+proc means data=merged_imputed mode; var WEALTH_RATING; 
+	where not missing(WEALTH_RATING); 
+	output out=mode mode=mode; run; 
+
+proc sql; select mode into : mode separated by ' ' from mode; quit;
+ 
+proc stdize data=merged_imputed
+    missing=&mode 
+    reponly 
+    out=imputed; 
+    var WEALTH_RATING_IMPUTED; 
+run;
+ 
+proc freq data=imputed; tables WEALTH_RATING WEALTH_RATING_IMPUTED; run;
+ 
+proc sgplot data=imputed; 
+	histogram WEALTH_RATING / binwidth=1 transparency=.5; 
+	histogram WEALTH_RATING_IMPUTED / binwidth=1 transparency=.5;
+run;
+
+
+
+
+/*Extra Credit*/
+
+/*Task 1*/
+
+data merged_imputed; set merged_imputed;
+	LAST_GIFT_DATE_30  = mdy(08,01,1998) - (MONTHS_SINCE_LAST_GIFT*30.4375);
+	format LAST_GIFT_DATE_30 mmddyy10.;
+	run;
+
+proc sql; select LAST_GIFT_DATE, LAST_GIFT_DATE_30 from merged_imputed where CONTROL_NUMBER = 727; quit;
+
+
+
+
+/*Task 2*/
+
+/*Part a*/
+
+data merged_imputed; set merged;
+
+proc means data=merged_imputed n nmiss min mean median max std skew; var LIFETIME_GIFT_AMOUNT; 
+	run;	
+	
+
+proc univariate data=imputed;
+	var LIFETIME_GIFT_AMOUNT;
+	run;
+
+proc sgplot data=imputed;
+	histogram LIFETIME_GIFT_AMOUNT / binwidth = 5 transparency=.5;
+  
+  
+  
+/*Part b*/
+
+data merged_imputed; set merged;
+
+cube_LIFETIME_GIFT_AMOUNT 		= LIFETIME_GIFT_AMOUNT**3;
+ sq_LIFETIME_GIFT_AMOUNT 			= LIFETIME_GIFT_AMOUNT**2;
+ id_LIFETIME_GIFT_AMOUNT 			= LIFETIME_GIFT_AMOUNT**1;
+ sqrt_LIFETIME_GIFT_AMOUNT 		= LIFETIME_GIFT_AMOUNT**.5;
+ log_LIFETIME_GIFT_AMOUNT 		= log(LIFETIME_GIFT_AMOUNT);
+ inv_sqrt_LIFETIME_GIFT_AMOUNT 	= 1/(LIFETIME_GIFT_AMOUNT**.5);
+ inv_id_LIFETIME_GIFT_AMOUNT		= 1/LIFETIME_GIFT_AMOUNT;
+ inv_sq_LIFETIME_GIFT_AMOUNT 		= 1/(LIFETIME_GIFT_AMOUNT**2);
+ inv_cub_LIFETIME_GIFT_AMOUNT 	= 1/(LIFETIME_GIFT_AMOUNT**3);
+ run;
+
+proc means data=merged_imputed skew min max mean; var log_LIFETIME_GIFT_AMOUNT inv_sq_LIFETIME_GIFT_AMOUNT 
+inv_sqrt_LIFETIME_GIFT_AMOUNT inv_id_LIFETIME_GIFT_AMOUNT sqrt_LIFETIME_GIFT_AMOUNT LIFETIME_GIFT_AMOUNT 
+sq_LIFETIME_GIFT_AMOUNT; run;
+
+proc univariate data=merged_imputed; var log_LIFETIME_GIFT_AMOUNT LIFETIME_GIFT_AMOUNT; 
+histogram log_LIFETIME_GIFT_AMOUNT LIFETIME_GIFT_AMOUNT; run; 
+
+proc means data=merged_imputed skew; var log_LIFETIME_GIFT_AMOUNT LIFETIME_GIFT_AMOUNT; run;
