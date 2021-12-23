@@ -1,0 +1,397 @@
+/*Importing the Data*/
+
+libname sasdata '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 2/';
+
+data donor_census; set sasdata.s_pml_donor_hw_v3; run;
+
+
+
+
+
+/*Task 1*/
+
+proc print data = donor_census (firstobs=1 obs=10); run;
+
+proc means data=donor_census; var LIFETIME_GIFT_RANGE; run;
+
+ proc univariate data=donor_census; var LIFETIME_GIFT_RANGE;
+  	histogram LIFETIME_GIFT_RANGE; run;
+
+
+/*Question 1*/
+
+
+data df; set donor_census; run; 
+ 
+%let anal_var = LIFETIME_GIFT_RANGE;
+
+ 
+/* Top/Bottom x% */ 
+ 
+proc means data=df p1 p99; var LIFETIME_GIFT_RANGE; output out = stats p1=bot1 p99=top1; run; 
+
+
+data df_topbot; set df; if _n_ = 1 then set stats;  
+	if &anal_var > top1 then ev_&anal_var. =1;
+	else if &anal_var < bot1 then ev_&anal_var. = 1;
+	else ev_&anal_var. =0;
+run;
+
+	proc freq data=df_topbot; tables ev_&anal_var; run;
+	
+	proc sql; select count(*) from df where LIFETIME_GIFT_RANGE > 48; quit;	
+				
+
+	
+/* Interquartile range (IQR) */ 	
+	
+%let iqr_mult = 3;
+
+proc means data=df mean q1 q3 qrange; var &anal_var; output out = stats q1=q1 q3=q3 qrange=iqr; run;  
+
+data df_iqr; set df; if _n_ = 1 then set stats;  
+	if &anal_var > q3 + &iqr_mult*iqr then ev_&anal_var. = 1;
+	else if &anal_var < q1 - &iqr_mult*iqr then ev_&anal_var. = 1;
+	else ev_&anal_var. = 0;
+run;
+
+	proc freq data=df_iqr; tables ev_&anal_var; run;
+
+proc sql; select count(*) from df where LIFETIME_GIFT_RANGE > 45; quit;	
+
+
+
+/*Clustering*/	
+
+%macro clust_out(dsin,varlist,where,pmin,dsout); 
+ 
+/* 
+	dsin  	= input dataset 
+	varlist = list of vars used in clustering 
+	where 	= where condition 
+	pmin  	= size of cluster, as % of dataset, to label its obs as extremes 
+	dsout 	= output dataset with extremes identified 
+	
+	Output produced:
+	
+	(1) cluster membership frequencies, sorted highest to lowest % of dataset
+	(2) plot of (1)
+	(3) identification of EVs based on PMIN parameter.
+		 
+ */ 
+ 
+*====> invoke FASTCLUS to group obs into 50 clusters; 
+ 
+proc fastclus data=&dsin maxc=50 maxiter=100 cluster=_clusterindex_ out=work.temp_clus noprint; 
+	var &varlist; 
+	where &where; 
+run; 
+ 
+*====> analyze resulting clusters; 
+proc freq data=work.temp_clus noprint; 
+	tables _clusterindex_ / out=work.temp_freq; 
+run; 
+ 
+Title 'Clusters and Member %';  
+proc print data=work.temp_freq; run; 
+  
+*====> isolate clusters with a size less than pmin of the dataset size; 
+data work.temp_low; set work.temp_freq; 
+	if percent < &pmin and _clusterindex_ notin(.); _extreme_ = 1; 
+	keep _clusterindex_ _extreme_; 
+run;
+
+*====> merge these isolated clusters back onto the master dataset; 
+proc sort data=work.temp_clus; by _clusterindex_; run; 
+proc sort data=work.temp_low; by _clusterindex_; run; 
+ 
+data &dsout; merge work.temp_clus work.temp_low; by _clusterindex_; 
+	if _extreme_ = . then _extreme_ = 0; 
+run; 
+ 
+*====> print the extreme values; 
+proc sort data=&dsout; by &varlist; run; 
+Title 'Extremes (single member clusters)'; 
+proc print data=&dsout; var &varlist _extreme_; where _extreme_ = 1; run; 
+ 
+
+%mend;
+ 
+	
+%clust_out(df, LIFETIME_GIFT_RANGE, ,.006, clus_out);
+
+proc sql; select count(*) from df where LIFETIME_GIFT_RANGE > 110; quit;		
+	
+	
+	
+	
+/*Task 2 */
+
+/*Question 1*/
+
+proc contents data=donor_census out=donor_census_contents noprint; run;
+proc print data = donor_census_contents; run;
+
+proc sql noprint; select name into :dfvars separated by ' ' from donor_census_contents; quit;
+
+
+%include '/home/u59829215/ANA 610/Macros/SimpleCardinalityMacro.sas';
+
+%SimpleCardinality(donor_census,&dfvars);
+
+%let vars = CLUSTER_CODE RECENT_STAR_STATUS RECENCY_STATUS_96NK;
+%include '/home/u59829215/ANA 610/Macros/SimpleCardinalityMacro.sas';	
+%SimpleCardinality(donor_census,&dfvars);	
+	
+/*Question 2*/
+	
+proc freq data=donor_census; table RECENCY_STATUS_96NK; run;
+	
+data donor_census_dum; set donor_census;
+
+	brdum_1 = (RECENCY_STATUS_96NK="A"); 
+	brdum_2 = (RECENCY_STATUS_96NK="E"); 
+	brdum_3 = (RECENCY_STATUS_96NK="F"); 
+	brdum_4 = (RECENCY_STATUS_96NK="L"); 
+	brdum_5 = (RECENCY_STATUS_96NK="N"); 	
+	brdum_6 = (RECENCY_STATUS_96NK="S"); 	
+run; 
+
+proc freq data=donor_census_dum; table brdum_1-brdum_6 ; run;
+	
+proc means data=donor_census_dum nmiss mean min max sum; var brdum_1-brdum_6; run;
+
+
+
+
+/*Task 3*/
+
+/*Question 1 Part i*/
+
+%let anal_var = RECENT_STAR_STATUS; 
+%let threshold = 30;
+
+data donor_census1; set donor_census; run;
+
+proc freq data=donor_census1; table &anal_var / out=freq; run;
+
+proc sort data=donor_census1; by &anal_var; run;
+proc sort data=freq; by &anal_var; run;
+
+data donor_census1_merged; merge donor_census1 (in=a) freq (in=b); by &anal_var; if a; 
+ 
+	RECENT_STAR_STATUS_NUM = RECENT_STAR_STATUS + 1;
+
+	array red(23) brdum_1-brdum_23;
+		do i = 1 to 23;
+			if RECENT_STAR_STATUS_NUM = i and count >= &threshold then red(i) = 1; else red(i) = 0;
+		end;
+
+proc print data=donor_census1_merged (firstobs = 1 obs =10); run;
+
+
+data donor_census_merged; set donor_census1_merged; 
+
+	if sum(of brdum_1-brdum_23) = 0 then brdum_other = 1; else brdum_other = 0;
+run;
+
+proc means data=donor_census_merged nmiss min mean max sum; 
+var brdum_1-brdum_23 brdum_other;
+run;
+
+/*Question 1 Part ii*/
+
+
+proc means  data=donor_census_merged nmiss min mean max sum; 
+var brdum_1-brdum_23 brdum_other;
+class TARGET_B;
+run;
+
+
+
+
+
+/*Question 2*/
+
+/*a*/
+
+proc sort data=donor_census_merged; by TARGET_B ; run;
+proc freq data=donor_census_merged; table RECENT_STAR_STATUS ; by TARGET_B; run; 
+
+%let segment 	= TARGET_B;
+%let anal_var 	= RECENT_STAR_STATUS;
+%let threshold 	= 30;
+
+proc sort data=donor_census_merged; by &segment; run;
+proc freq data=donor_census_merged; table &anal_var / out=freq; by &segment; run; 
+
+	data seg_1 seg_0; set freq;
+		if &segment = 1 then output seg_1;
+		if &segment = 0 then output seg_0; run;
+		
+		data seg_1; set seg_1; count_seg_1 = count; keep &anal_var count_seg_1; run;
+		data seg_0; set seg_0; count_seg_0 = count; keep &anal_var count_seg_0; run;
+
+			proc sort data=seg_1; by &anal_var; run;
+			proc sort data=seg_0; by &anal_var; run;
+			proc sort data=donor_census_merged; by &anal_var; run;
+
+
+data dummy5; merge donor_census_merged (in=a) seg_1 (in=b) seg_0 (in=c); by &anal_var; if a; 
+
+	array red(23) brdum_1-brdum_23;
+		do i = 1 to 23;
+			if RECENT_STAR_STATUS_NUM = i and count_seg_1 >= &threshold and count_seg_0 >= &threshold then red(i) = 1; else red(i) = 0;
+		end;
+		
+if sum(of brdum_1-brdum_23) = 0 then brdum_other = 1; else brdum_other = 0;
+
+proc means data = dummy5 nmiss mean min max sum; var brdum_1-brdum_23 brdum_other; run;
+
+proc sort data=dummy5; by &segment; run; 
+	proc means data=dummy5 sum; var brdum_1-brdum_23 brdum_other; output out=tmp_sum 
+		sum = brdum_1-brdum_23 brdum_other; by &segment; run; 
+		
+		proc transpose data=tmp_sum out=tmp_sum_t; id &segment; run; 
+			proc print data=tmp_sum_t; run;
+
+
+
+
+/*Task 4*/
+
+
+
+/*a*/
+
+%let input_data = donor_census_merged; 
+%let anal_var 	= RECENT_STAR_STATUS ;
+%let target_var = TARGET_B;
+
+proc freq data=&input_data;
+	tables &anal_var*&target_var / nopercent norow nocol chisq;
+run;
+
+
+ proc means data= &input_data noprint nway;
+	 class &anal_var;
+	 var &target_var;
+	 output out=level mean = prop;
+ run;
+ 
+	 proc print data=level; run;
+
+/*b*/
+
+proc freq data=&input_data; table &anal_var; run;
+ proc freq data=&input_data;
+    table &anal_var;
+    where &target_var = 1;
+ run;
+
+/*c*/
+
+ods output ClusterHistory=cluster;
+
+proc cluster data=level method=ward outtree=fortree; 
+	freq _freq_;  
+	var prop;
+	id &anal_var;
+run;
+
+/*d*/
+
+proc freq data=&input_data noprint;
+	table &anal_var*&target_var / chisq;
+	output out=chi_sq(keep=_pchi_) chisq;
+run;
+
+data cutoff;
+   if _n_=1 then set chi_sq;
+   set cluster;
+   chisquare=_pchi_*rsquared;
+   degfree=numberofclusters-1;
+   logpvalue=logsdf('CHISQ',chisquare,degfree);
+run;
+
+	proc print data=cutoff; run;
+	
+title1 "Plot of the Log of the P-value by Number of Clusters";
+proc gplot data=cutoff;
+	plot logpvalue*numberofclusters; run;
+
+/*e*/
+
+proc sql;
+   select NumberOfClusters into :ncl
+   from cutoff
+   having logpvalue=min(logpvalue);
+quit;
+
+proc tree data=fortree nclusters=&ncl out=work.clus noprint;
+   id &anal_var;
+run;
+
+
+proc sort data=work.clus;
+   by clusname;
+run;
+
+title1 "Levels of Categorical Variable by Cluster";
+proc print data=work.clus;
+   by clusname;
+   id clusname;
+run;
+
+/*f*/
+
+data clus2; set clus; drop clusname;  run;
+	proc sort data=clus2; by &anal_var; run;
+	proc sort data=&input_data; by &anal_var; run;
+		data scored; merge &input_data clus2; by &anal_var; 
+			branch_clus1_dum=(cluster=1);	
+			branch_clus2_dum=(cluster=2);	
+			branch_clus3_dum=(cluster=3);	
+		run;
+
+%let cluster_dums = branch_clus1_dum branch_clus2_dum branch_clus3_dum;
+
+		proc means data=scored sum; var &cluster_dums ; run;
+
+/*g*/
+
+proc freq data = scored; tables branch_clus1_dum branch_clus2_dum branch_clus3_dum; run;
+
+/*h*/
+
+proc sort data=scored; by &target_var; run;
+			proc means data=scored sum; var  &cluster_dums; output out=tmp_sum (drop = _TYPE_ _FREQ_ _STAT_)
+				sum =  &cluster_dums;
+				by &target_var; where &target_var notin(.); run;
+					proc transpose data=tmp_sum out=tmp_sum_t; run;
+						proc print data=tmp_sum_t; run;
+ 
+/*EC*/
+
+/*a-b*/
+
+%let input_data = donor_census_merged; 
+%let anal_var 	= RECENT_STAR_STATUS ;
+%let target_var = TARGET_B;
+
+Data df; set donor_census_merged; run;
+
+
+%include '/home/u59829215/ANA 610/Macros/WOEOddsMacro.sas';
+
+%WOEOdds(df,df_woe,&anal_var,&target_var);
+
+
+ proc freq data=df_woe noprint;
+ 	tables woe*&anal_var / out=freq;
+ run;
+
+/*d*/
+
+proc sql; select sum(iv) into: IV from level_sum; quit; 
+
