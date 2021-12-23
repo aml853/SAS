@@ -1,6 +1,6 @@
 /*Importing the Data*/
 
-libname sasdata '/home/u59829215/my_shared_file_links/kevinduffy-deno1/Homework 2/';
+libname sasdata '/home/u59829215/my_shared_file_links/adamleblanc/';
 
 data donor_census; set sasdata.s_pml_donor_hw_v3; run;
 
